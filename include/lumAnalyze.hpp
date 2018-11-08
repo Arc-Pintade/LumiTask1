@@ -58,9 +58,13 @@ public :
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 
-    void doubleHisto(TString s, int n, int min, int max, int nbin, double* values, TString log, TString res, long long minRes, long long maxRes);
+    double nClusterAverage(TString s, TString nature, int n, int nbin, TString log, long long minRes, long long maxRes);
+    double nClusterAverageBX(TString s, TString nature, int n, int nbin, TString log, long long minRes, long long maxRes, int nBX);
+    void histoClustBX(TString s, int n, double** nCluAv, double** nCluStd);
+    void timeHisto(TString s, int div, int n, long long minRes, long long maxRes);
+    void timeHistoBX(TString s, int div, int n, long long minRes, long long maxRes, int* nBX);
+
     void intHisto(TString s, int n, int min, int max, int nbin, int* values, TString log, TString res, long long minRes, long long maxRes);
-    void doubleHistoBX(TString s, int n, int min, int max, int nbin, double* values, TString log, TString res, long long minRes, long long maxRes, int nBX);
 
 };
 
