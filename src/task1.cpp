@@ -6,10 +6,12 @@
 #include <TApplication.h>
 #include <TString.h>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
 # ifndef __CINT__
+
 
 int main(){
 
@@ -38,9 +40,9 @@ int main(){
     int nValue = a.fChain->GetEntriesFast();
 
 // For histos (name, Number of events, Minimum of histo, Maximum of histo, Bin of histo, input, Option logY ("yes" or anything else for no), Other part of name (title), Minimum of restriction, Maximum of restriction)
-/*
-    a.intHisto("BXid", nValue, 0, 4000, nbin, a.BXidValue, "", "(1530412500<timeStamp<1530412800)", nMinScan[0], nMaxScan[0]);
-    a.intHisto("BXid", nValue, 0, 4000, nbin, a.BXidValue, "", "(1530427080<timeStamp<1530427440)", nMinScan[1], nMaxScan[1]);
+
+    a.intHisto("BXid", "BXid", "number of events", nValue, 0, 4000, nbin, a.BXidValue, "", "(1530412500<timeStamp<1530412800)", nMinScan[0], nMaxScan[0]);
+    a.intHisto("BXid", "BXid", "number of events", nValue, 0, 4000, nbin, a.BXidValue, "", "(1530427080<timeStamp<1530427440)", nMinScan[1], nMaxScan[1]);
 
     double** nClusterAv = new double*[2]{0};
     double** nClusterStd = new double*[2]{0};
@@ -48,43 +50,57 @@ int main(){
         nClusterAv[i] = new double[5]{0};
         nClusterStd[i] = new double[5]{0};
     }
+    double* nClusterAvTot = new double[2]{0};
+    double* nClusterStdTot = new double[2]{0};
 
     for(int i=0; i<2; i++)
         for(int j=0; j<5; j++){
-            nClusterAv[i][j] = a.nClusterAverageBX("nCluster", "Mean", nValue, nbin, "log", nMinScan[i], nMaxScan[i], nBXid[j]);
-            nClusterStd[i][j] = a.nClusterAverageBX("nCluster", "StdDev", nValue, nbin, "log", nMinScan[i], nMaxScan[i], nBXid[j]);
+            nClusterAv[i][j] = a.nClusterAverageBX("nCluster", "nCluster", "number of events", "Mean", nValue, nbin, "log", nMinScan[i], nMaxScan[i], nBXid[j]);
+            nClusterStd[i][j] = a.nClusterAverageBX("nCluster", "nCluster", "number of events", "StdDev", nValue, nbin, "log", nMinScan[i], nMaxScan[i], nBXid[j]);
         }
 
-    cout<<" 265 Res1 = "<<nClusterAv[0][0]<<endl;
-    cout<<" 865 Res1 = "<<nClusterAv[0][1]<<endl;
-    cout<<" 1780 Res1 = "<<nClusterAv[0][2]<<endl;
-    cout<<" 2192 Res1 = "<<nClusterAv[0][3]<<endl;
-    cout<<" 3380 Res1 = "<<nClusterAv[0][4]<<endl;
-    cout<<" 265 Res2 = "<<nClusterAv[1][0]<<endl;
-    cout<<" 865 Res2 = "<<nClusterAv[1][1]<<endl;
-    cout<<" 1780 Res2 = "<<nClusterAv[1][2]<<endl;
-    cout<<" 2192 Res2 = "<<nClusterAv[1][3]<<endl;
-    cout<<" 3380 Res2 = "<<nClusterAv[1][4]<<endl;
+    for(int i=0; i<2; i++){
+        nClusterAvTot[i] = a.nClusterAverage("nCluster", "nCluster", "number of events", "Mean", nValue, nbin, "log", nMinScan[i], nMaxScan[i]);
+        nClusterStdTot[i] = a.nClusterAverage("nCluster", "nCluster", "number of events", "StdDev", nValue, nbin, "log", nMinScan[i], nMaxScan[i]);
+    }
 
-*/
+        double avCluster = a.nClusterAverageTot("totCluster", "nCluster", "number of events", "Mean", nValue, nbin, "log", nMinScan[0], nMaxScan[0], nMinScan[1], nMaxScan[1]);
+        double stdCluster = a.nClusterAverageTot("totCluster", "nCluster", "number of events", "StdDev", nValue, nbin, "log", nMinScan[0], nMaxScan[0], nMinScan[1], nMaxScan[1]);
+/*
 //    a.histoClustBX("ClusterAverageBXid", nValue, nClusterAv, nClusterStd);
-    a.timeHisto("timeStampAverageCluster", 10, nValue, nMinScan[0], nMaxScan[0]);
-    a.timeHisto("timeStampAverageCluster", 10, nValue, nMinScan[1], nMaxScan[1]);
+    TH1F* h1 = a.timeHisto("timeStampAverageCluster", "time stamp", "nClusters",  10, nValue, nMinScan[0], nMaxScan[0]);
+    TH1F* h2 = a.timeHisto("timeStampAverageCluster", "time stamp", "nClusters", 10, nValue, nMinScan[1], nMaxScan[1]);
 
-    a.timeHistoBX("timeStampAverageClusterBXid", 10, nValue, nMinScan[0], nMaxScan[0], nBXid);
-    a.timeHistoBX("timeStampAverageClusterBXid", 10, nValue, nMinScan[1], nMaxScan[1], nBXid);
+    a.timeHistoBX("timeStampAverageClusterBXid", "time stamp", "number of events", 10, nValue, nMinScan[0], nMaxScan[0], nBXid);
+    a.timeHistoBX("timeStampAverageClusterBXid",  "time stamp","number of events", 10, nValue, nMinScan[1], nMaxScan[1], nBXid);
 
-    for(int i=0; i<nValue; i++){
-        if(a.timeStampValue[i] > nMinScan[0] && a.timeStampValue[i] < nMaxScan[0])
-            nScan1++;
+
+//    a.mixHisto("nClusterBin", h1, h2);
+*/
+    double maxLumino = a.maxLum(nValue);
+
+    std::ofstream f("data/task1Values.txt", std::ios::out);
+
+    for(int i=0; i<2; i++){
+        f<<"Restriction "<<i<<"  : "<<nMinScan[i]<<" < timeStamp < "<<nMaxScan[i]<<endl<<endl;
+        f<<"Average : "<<" "<<endl<<endl;
+        for(int j =0; j<5; j++)
+            f<<"BXid = "<<nBXid[j]<<" : "<<nClusterAv[i][j]<<endl;
+        f<<endl;
+        f<<"total : "<<nClusterAvTot[i]<<endl<<endl;
+        f<<"Standard Deviation : "<<" "<<endl<<endl;
+        for(int j =0; j<5; j++)
+            f<<"BXid = "<<nBXid[j]<<" : "<<nClusterStd[i][j]<<endl;
+        f<<endl;
+        f<<"total : "<<nClusterStdTot[i]<<endl<<endl;
+    f<<"Totale : "<<avCluster<<" "<<stdCluster<<endl;
+    f<<"ratio max : "<<(avCluster/maxLumino)<<endl;
     }
-    cout<<"Scan1 : "<<nScan1<<endl;
-    cout<<endl;
-    for(int i=0; i<nValue; i++){
-        if(a.timeStampValue[i] > nMinScan[1] && a.timeStampValue[i] < nMaxScan[1])
-            nScan2++;
-    }
-    cout<<"Scan2 : "<<nScan2<<endl;
+    
+    f.close();
+
+
+    cout<<"finish"<<endl;
 
     app.Run();
     return 0;

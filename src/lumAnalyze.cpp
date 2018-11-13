@@ -6,6 +6,7 @@
 #include <TLegend.h>
 #include <iostream>
 
+
 void lumAnalyze::Loop()
 {
 //   In a ROOT session, you can do:
@@ -51,9 +52,17 @@ void lumAnalyze::Loop()
    }
 }
 
+double lumAnalyze::maxLum(int n){
+    double foo =0;
+    for(int i=0; i<n; i++)
+        if(foo < nClusterValue[i])
+            foo = nClusterValue[i];
+    return foo;
+}
+
 //_____________________________________________ Histos _______________________________________//
 
-double lumAnalyze::nClusterAverage(TString s, TString nature, int n, int nbin, TString log, long long minRes, long long maxRes){
+double lumAnalyze::nClusterAverage(TString s, TString axeX, TString axeY, TString nature, int n, int nbin, TString log, long long minRes, long long maxRes){
     double foo;
     TString minResString = Form("%d", minRes);
     TString maxResString = Form("%d", maxRes);
@@ -64,10 +73,9 @@ double lumAnalyze::nClusterAverage(TString s, TString nature, int n, int nbin, T
         if(timeStampValue[i] > minRes && timeStampValue[i] < maxRes)
             h->Fill(nClusterValue[i]);
     }
-    h->SetTitle(s+" "+"("+minRes+"<timeStamp<"+maxRes);
-    h->GetYaxis()->SetTitle(s);
 
-    h->SetStats(0);
+    h->GetXaxis()->SetTitle(axeX);
+    h->GetYaxis()->SetTitle(axeY);
 
     h->Draw();
     h->SetLineWidth(2);        h->SetLineColor(kBlue);
@@ -85,7 +93,37 @@ double lumAnalyze::nClusterAverage(TString s, TString nature, int n, int nbin, T
     return foo;
 }
 
-double lumAnalyze::nClusterAverageBX(TString s, TString nature, int n, int nbin, TString log, long long minRes, long long maxRes, int nBX){
+double lumAnalyze::nClusterAverageTot(TString s, TString axeX, TString axeY, TString nature, int n, int nbin, TString log, long long min1, long long max1, long long min2, long long max2){
+    double foo;
+
+    TCanvas* c = new TCanvas(s,"", 200,10,800,600);
+    TH1F* h = new TH1F("","", nbin, 0, 10000);
+    for(int i=0; i<n; i++){
+        if((timeStampValue[i] > min1 && timeStampValue[i] < max1) || (timeStampValue[i] > min2 && timeStampValue[i] < max2))
+            h->Fill(nClusterValue[i]);
+    }
+
+    h->GetXaxis()->SetTitle(axeX);
+    h->GetYaxis()->SetTitle(axeY);
+
+    h->Draw();
+    h->SetLineWidth(2);        h->SetLineColor(kBlue);
+
+    if(log=="log")
+        c->SetLogy();
+
+    if(nature == "Mean")
+        foo = h->GetMean(1);
+    else if(nature == "StdDev")
+        foo = h->GetStdDev(1);
+    else
+        std::cout<<"error with nature"<<std::endl;
+    return foo;
+
+
+}
+
+double lumAnalyze::nClusterAverageBX(TString s, TString axeX, TString axeY, TString nature, int n, int nbin, TString log, long long minRes, long long maxRes, int nBX){
     double foo;
     TString BXval = Form("%d", nBX);
     TString minResString = Form("%d", minRes);
@@ -100,8 +138,8 @@ double lumAnalyze::nClusterAverageBX(TString s, TString nature, int n, int nbin,
                 h->Fill(nClusterValue[i]);
     }
 
-    h->SetTitle(s+" "+"("+minRes+"<timeStamp<"+maxRes+")"+"BXid"+BXval);
-    h->GetYaxis()->SetTitle(s);
+    h->GetXaxis()->SetTitle(axeX);
+    h->GetYaxis()->SetTitle(axeY);
 
 
     h->Draw();
@@ -120,7 +158,7 @@ double lumAnalyze::nClusterAverageBX(TString s, TString nature, int n, int nbin,
     return foo;
 }
 
-void lumAnalyze::histoClustBX(TString s, int n, double** nCluAv, double** nCluStd){
+void lumAnalyze::histoClustBX(TString s, TString axeX, TString axeY, int n, double** nCluAv, double** nCluStd){
     TCanvas* c = new TCanvas(s,"", 200,10,800,600);
     double k[2][5] = {0};
     TH1F** h = new TH1F*[2];
@@ -158,11 +196,10 @@ void lumAnalyze::histoClustBX(TString s, int n, double** nCluAv, double** nCluSt
             h[i]->SetBinError(j+1, (nCluStd[i][j])/sqrt(k[i][j]));
         }
 
-    h[0]->SetTitle(s);
     h[0]->SetMaximum(0.2);
     h[0]->SetMinimum(0);
-    h[0]->GetYaxis()->SetTitle("Cluster Average");
-    h[0]->GetXaxis()->SetTitle("BXid");
+    h[0]->GetYaxis()->SetTitle(axeY);
+    h[0]->GetXaxis()->SetTitle(axeX);
     h[0]->SetStats(0);
 
     h[0]->Draw();               h[1]->Draw("SAME");
@@ -178,7 +215,8 @@ void lumAnalyze::histoClustBX(TString s, int n, double** nCluAv, double** nCluSt
 
 }
 
-void lumAnalyze::timeHisto(TString s, int div, int n, long long minRes, long long maxRes){
+TH1F* lumAnalyze::timeHisto(TString s, TString axeX, TString axeY, int div, int n, long long minRes, long long maxRes){
+    TH1F* foo;
     TString minResString = Form("%d", minRes);
     TString maxResString = Form("%d", maxRes);
     int step = (maxRes-minRes)/((double)div);
@@ -210,8 +248,9 @@ void lumAnalyze::timeHisto(TString s, int div, int n, long long minRes, long lon
 
     h->SetMaximum(0.3);
     h->SetMinimum(0);
-    h->SetTitle(s+" "+"("+minRes+"<timeStamp<"+maxRes+")");
-    h->GetYaxis()->SetTitle(s);
+
+    h->GetXaxis()->SetTitle(axeX);
+    h->GetYaxis()->SetTitle(axeY);
 
     h->SetStats(0);
 
@@ -219,20 +258,22 @@ void lumAnalyze::timeHisto(TString s, int div, int n, long long minRes, long lon
     h->SetLineWidth(2);        h->SetLineColor(kBlue);
 
     c->SaveAs("results/"+s+"("+minRes+"<timeStamp<"+maxRes+")"+".png");
+    foo=h;
+    return foo;
 }
 
-void lumAnalyze::timeHistoBX(TString s, int div, int n, long long minRes, long long maxRes, int* nBX){
+void lumAnalyze::timeHistoBX(TString s, TString axeX, TString axeY, int div, int n, long long minRes, long long maxRes, int* nBX){
     TString minResString = Form("%d", minRes);
     TString maxResString = Form("%d", maxRes);
     int step = (maxRes-minRes)/((double)div);
-    double moyClust[div][5];
-    double stdClust[div][5];
-    int nb[div][5] = {10};
+    double moyClust[div][5]{0};
+    double stdClust[div][5]{0};
+    int nb[div][5]{0};
     for(int i=0; i<div; i++){
         for(int j=0; j<n; j++){
             if((minRes+i*step) < timeStampValue[j] && timeStampValue[j] < (minRes+(i+1)*step)){
                 for(int o=0; o<5; o++){
-                    if(BXidValue[i] == nBX[o]){
+                    if(BXidValue[j] == nBX[o]){
                         moyClust[i][o] += nClusterValue[j];
                         nb[i][o]++;
                     }
@@ -240,56 +281,76 @@ void lumAnalyze::timeHistoBX(TString s, int div, int n, long long minRes, long l
             }
         }
         for(int o=0; o<5; o++)
-            moyClust[i][o] /= (double)nb[i][o];
+            moyClust[i][o] *= 1/(double)nb[i][o];
             for(int j=0; j<n; j++){
                 if((minRes+i*step) < timeStampValue[j] && timeStampValue[j] < (minRes+(i+1)*step))
                     for(int o=0; o<5; o++){
-                        if(BXidValue[i] == nBX[o]){
+                        if(BXidValue[j] == nBX[o]){
                             stdClust[i][o] += nClusterValue[j]*nClusterValue[j] - 2*nClusterValue[j]*moyClust[i][o] + moyClust[i][o]*moyClust[i][o];
                         }
                     }
                 }
                 for(int o=0; o<5; o++){
-                    stdClust[i][o] /= (double)nb[i][o];
+                    stdClust[i][o] *= 1/((double)nb[i][o]);
                     stdClust[i][o] = sqrt(stdClust[i][o]);
                 }
-    std::cout<<moyClust[i][0]<<std::endl<<moyClust[i][1]<<std::endl<<moyClust[i][2]<<std::endl;
     }
 
     TCanvas* c = new TCanvas(s+"("+minRes+"<timeStamp<"+maxRes+")","", 200,10,800,600);
     TH1F** h;
 
-    h[0] = new TH1F("","", div, minRes, maxRes);
+    h[0] = new TH1F("BXid = 265","", div, minRes, maxRes);
     h[1] = new TH1F("","", div, minRes, maxRes);
-    h[2] = new TH1F("","", div, minRes, maxRes);
+    h[2] = new TH1F("BXid = 1780","", div, minRes, maxRes);
     h[3] = new TH1F("","", div, minRes, maxRes);
     h[4] = new TH1F("","", div, minRes, maxRes);
 
     for(int a=0; a<5; a++){
         for(int i=0; i<div; i++){
-            //h[a]->SetBinContent(i+1, moyClust[i][a]);
-            //h[a]->SetBinError(i+1, (stdClust[i][a])/(sqrt(nb[i][a])));
+            h[a]->SetBinContent(i+1, moyClust[i][a]);
+            h[a]->SetBinError(i+1, (stdClust[i][a])/(sqrt(nb[i][a])));
         }
     }
 
     h[0]->SetMaximum(0.3);
     h[0]->SetMinimum(0);
-    h[0]->SetTitle(s+" "+"("+minRes+"<timeStamp<"+maxRes+")");
-    h[0]->GetYaxis()->SetTitle(s);
+    h[0]->GetXaxis()->SetTitle(axeX);
+    h[0]->GetYaxis()->SetTitle(axeY);
 
     h[0]->SetStats(0);
 
     h[0]->Draw();
-    for(int i=1; i<5; i++)
-        h[i]->Draw("SAME");
+    h[2]->Draw("SAME");
+
     h[0]->SetLineWidth(2);    h[1]->SetLineWidth(2);    h[2]->SetLineWidth(2);    h[3]->SetLineWidth(2);    h[4]->SetLineWidth(2);
     h[0]->SetLineColor(kBlue);    h[1]->SetLineColor(kRed);    h[2]->SetLineColor(kMagenta);    h[3]->SetLineColor(kYellow);    h[4]->SetLineColor(kGreen);
-
+/*
+    TLegend* legend = new TLegend(0.1,0.7,0.3,0.9);
+    legend->AddEntry(h[0],"BXid = 265","l");
+    legend->AddEntry(h[2],"BXid = 1780","l");
+    legend->Draw();
+*/
+    c->BuildLegend();
     c->SaveAs("results/"+s+"("+minRes+"<timeStamp<"+maxRes+")"+".png");
+
+}
+
+void lumAnalyze::mixHisto(TString s, TH1F* h1, TH1F* h2){
+    TCanvas* c = new TCanvas(s,"", 200,10,800,600);
+    h2->SetLineColor(kRed);
+    h1->Draw();
+    h2->Draw("SAME");
+
+    TLegend* legend = new TLegend(0.1,0.7,0.48,0.9);
+    legend->AddEntry(h1,"(1530412500<timeStamp<1530412800)","l");
+    legend->AddEntry(h2,"(1530427080<timeStamp<1530427440)","l");
+    legend->Draw();
+
+    c->SaveAs("results/"+s+".png");
 }
 
 
-void lumAnalyze::intHisto(TString s, int n, int min, int max, int nbin, int* values, TString log, TString res, long long minRes, long long maxRes){
+void lumAnalyze::intHisto(TString s, TString axeX, TString axeY, int n, int min, int max, int nbin, int* values, TString log, TString res, long long minRes, long long maxRes){
     TCanvas* c = new TCanvas(s+res,"", 200,10,800,600);
     TH1F* h = new TH1F("","", nbin, min, max);
     for(int i=0; i<n; i++){
@@ -297,8 +358,8 @@ void lumAnalyze::intHisto(TString s, int n, int min, int max, int nbin, int* val
             h->Fill(values[i]);
     }
 
-    h->SetTitle(s+" "+res);
-    h->GetYaxis()->SetTitle(s);
+    h->GetXaxis()->SetTitle(axeX);
+    h->GetYaxis()->SetTitle(axeY);
 
     h->SetStats(0);
 

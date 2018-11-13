@@ -11,6 +11,7 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include <TH1F.h>
 #include <TString.h>
 
 // Header file for the classes stored in the TTree if any.
@@ -58,13 +59,18 @@ public :
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 
-    double nClusterAverage(TString s, TString nature, int n, int nbin, TString log, long long minRes, long long maxRes);
-    double nClusterAverageBX(TString s, TString nature, int n, int nbin, TString log, long long minRes, long long maxRes, int nBX);
-    void histoClustBX(TString s, int n, double** nCluAv, double** nCluStd);
-    void timeHisto(TString s, int div, int n, long long minRes, long long maxRes);
-    void timeHistoBX(TString s, int div, int n, long long minRes, long long maxRes, int* nBX);
+    double nClusterAverage(TString s, TString axeX, TString axeY, TString nature, int n, int nbin, TString log, long long minRes, long long maxRes);
+    double nClusterAverageBX(TString s, TString axeX, TString axeY, TString nature, int n, int nbin, TString log, long long minRes, long long maxRes, int nBX);
+    double nClusterAverageTot(TString s, TString axeX, TString axeY, TString nature, int n, int nbin, TString log, long long min1, long long max1, long long min2, long long max2);
 
-    void intHisto(TString s, int n, int min, int max, int nbin, int* values, TString log, TString res, long long minRes, long long maxRes);
+    void histoClustBX(TString s, TString axeX, TString axeY, int n, double** nCluAv, double** nCluStd);
+    TH1F* timeHisto(TString s, TString axeX, TString axeY, int div, int n, long long minRes, long long maxRes);
+    void timeHistoBX(TString s, TString axeX, TString axeY, int div, int n, long long minRes, long long maxRes, int* nBX);
+    void mixHisto(TString s, TH1F* h1, TH1F* h2);
+
+    void intHisto(TString s, TString axeX, TString axeY, int n, int min, int max, int nbin, int* values, TString log, TString res, long long minRes, long long maxRes);
+
+    double maxLum(int n);
 
 };
 
