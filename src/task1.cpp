@@ -17,7 +17,7 @@ int main(){
 
     TApplication app("app", nullptr, nullptr);
 
-    lumAnalyze a;
+    lumAnalyze a("merged_ZBAll_superscans.root",0);
     a.Loop();
 
     int nBXid[5];
@@ -66,20 +66,35 @@ int main(){
 
         double avCluster = a.nClusterAverageTot("totCluster", "nCluster", "number of events", "Mean", nValue, nbin, "log", nMinScan[0], nMaxScan[0], nMinScan[1], nMaxScan[1]);
         double stdCluster = a.nClusterAverageTot("totCluster", "nCluster", "number of events", "StdDev", nValue, nbin, "log", nMinScan[0], nMaxScan[0], nMinScan[1], nMaxScan[1]);
-/*
-//    a.histoClustBX("ClusterAverageBXid", nValue, nClusterAv, nClusterStd);
-    TH1F* h1 = a.timeHisto("timeStampAverageCluster", "time stamp", "nClusters",  10, nValue, nMinScan[0], nMaxScan[0]);
-    TH1F* h2 = a.timeHisto("timeStampAverageCluster", "time stamp", "nClusters", 10, nValue, nMinScan[1], nMaxScan[1]);
 
-    a.timeHistoBX("timeStampAverageClusterBXid", "time stamp", "number of events", 10, nValue, nMinScan[0], nMaxScan[0], nBXid);
-    a.timeHistoBX("timeStampAverageClusterBXid",  "time stamp","number of events", 10, nValue, nMinScan[1], nMaxScan[1], nBXid);
+//    a.histoClustBX("ClusterAverageBXid", nValue, nClusterAv, nClusterStd);
+    TH1F* h1 = a.timeHisto("timeStampAverageCluster", "time stamp", "< nCluster >",  10, nValue, nMinScan[0], nMaxScan[0]);
+    TH1F* h2 = a.timeHisto("timeStampAverageCluster", "time stamp", "< nCluster >", 10, nValue, nMinScan[1], nMaxScan[1]);
+
+//    a.timeHistoBX("timeStampAverageClusterBXid", "time stamp", "number of events", 20, nValue, 1530412000, 1530427080, nBXid);
+//    a.timeHistoBX("timeStampAverageClusterBXid",  "time stamp","number of events", 20, nValue, nMinScan[1], nMaxScan[1], nBXid);
 
 
 //    a.mixHisto("nClusterBin", h1, h2);
-*/
-    double maxLumino = a.maxLum(nValue);
 
-    std::ofstream f("data/task1Values.txt", std::ios::out);
+    lumAnalyze aVdm("merged_ZB1.root",0);
+    aVdm.Loop();
+    int nValueVdm = aVdm.fChain->GetEntriesFast();
+
+
+    cout<<"ca arrive"<<endl;
+/*
+    TH1F* hist = aVdm.timeHisto("Signal", "timeStamp", "< nCluster >",100, nValueVdm, 1530406000, 1530412500);
+    double maxLumino = 0;
+    for(int i=0; i<100; i++)
+        if(hist->GetBinContent(i+1)>maxLumino)
+            maxLumino=hist->GetBinContent(i+1);
+
+
+    cout<<maxLumino<<endl;
+    cout<<endl;
+*/
+    ofstream f("data/task1Values.txt", ios::out);
 
     for(int i=0; i<2; i++){
         f<<"Restriction "<<i<<"  : "<<nMinScan[i]<<" < timeStamp < "<<nMaxScan[i]<<endl<<endl;
@@ -88,17 +103,17 @@ int main(){
             f<<"BXid = "<<nBXid[j]<<" : "<<nClusterAv[i][j]<<endl;
         f<<endl;
         f<<"total : "<<nClusterAvTot[i]<<endl<<endl;
-        f<<"Standard Deviation : "<<" "<<endl<<endl;
+        f<<"Mean Error : "<<" "<<endl<<endl;
         for(int j =0; j<5; j++)
             f<<"BXid = "<<nBXid[j]<<" : "<<nClusterStd[i][j]<<endl;
         f<<endl;
         f<<"total : "<<nClusterStdTot[i]<<endl<<endl;
-    f<<"Totale : "<<avCluster<<" "<<stdCluster<<endl;
-    f<<"ratio max : "<<(avCluster/maxLumino)<<endl;
     }
-    
-    f.close();
+    f<<"Totale : "<<avCluster<<" +- "<<stdCluster<<endl;
+//    f<<"Max signal : "<<maxLumino<<endl;
+//    f<<"ratio max : "<<(avCluster/maxLumino)<<endl;
 
+    f.close();
 
     cout<<"finish"<<endl;
 

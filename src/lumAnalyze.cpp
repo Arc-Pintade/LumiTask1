@@ -35,7 +35,7 @@ void lumAnalyze::Loop()
    if (fChain == 0) return;
 
    Long64_t nentries = fChain->GetEntriesFast();
-
+    std::cout<<" nentries : "<<nentries<<std::endl;
     timeStampValue      = new long long[nentries];
     nClusterValue       = new double[nentries];
     BXidValue       = new int[nentries];
@@ -87,7 +87,7 @@ double lumAnalyze::nClusterAverage(TString s, TString axeX, TString axeY, TStrin
     if(nature == "Mean")
         foo = h->GetMean(1);
     else if(nature == "StdDev")
-        foo = h->GetStdDev(1);
+        foo = h->GetMeanError(1);
     else
         std::cout<<"error with nature"<<std::endl;
     return foo;
@@ -115,7 +115,7 @@ double lumAnalyze::nClusterAverageTot(TString s, TString axeX, TString axeY, TSt
     if(nature == "Mean")
         foo = h->GetMean(1);
     else if(nature == "StdDev")
-        foo = h->GetStdDev(1);
+        foo = h->GetMeanError(1);
     else
         std::cout<<"error with nature"<<std::endl;
     return foo;
@@ -152,7 +152,7 @@ double lumAnalyze::nClusterAverageBX(TString s, TString axeX, TString axeY, TStr
     if(nature == "Mean")
         foo = h->GetMean(1);
     else if(nature == "StdDev")
-        foo = h->GetStdDev(1);
+        foo = h->GetMeanError(1);
     else
         std::cout<<"error with nature"<<std::endl;
     return foo;
@@ -220,28 +220,34 @@ TH1F* lumAnalyze::timeHisto(TString s, TString axeX, TString axeY, int div, int 
     TString minResString = Form("%d", minRes);
     TString maxResString = Form("%d", maxRes);
     int step = (maxRes-minRes)/((double)div);
-    double moyClust[div];
-    double stdClust[div];
+    long double moyClust[div]{0};
+    double stdClust[div]{0};
     int nb[div] = {0};
     for(int i=0; i<div; i++){
-        for(int j=0; j<n; j++){
+        for(int j=0; j<n; j++){// i=0 implique segment fault for signal
             if((minRes+i*step) < timeStampValue[j] && timeStampValue[j] < (minRes+(i+1)*step)){
                 moyClust[i] += nClusterValue[j];
                 nb[i]++;
             }
         }
-        moyClust[i] /= (double)nb[i];
+        if(nb[i]==0)
+            moyClust[i]=0;
+        else
+            moyClust[i] /= (double)nb[i];
         for(int j=0; j<n; j++){
             if((minRes+i*step) < timeStampValue[j] && timeStampValue[j] < (minRes+(i+1)*step))
                 stdClust[i] += nClusterValue[j]*nClusterValue[j] - 2*nClusterValue[j]*moyClust[i] + moyClust[i]*moyClust[i];
         }
+        if(nb[i]==0)
+            stdClust[i]=0;
+        else
         stdClust[i] /= (double)nb[i];
         stdClust[i] = sqrt(stdClust[i]);
     }
-
     TCanvas* c = new TCanvas(s+"("+minRes+"<timeStamp<"+maxRes+")","", 200,10,800,600);
     TH1F* h = new TH1F("","", div, minRes, maxRes);
     for(int i=0; i<div; i++){
+
         h->SetBinContent(i+1, moyClust[i]);
         h->SetBinError(i+1, (stdClust[i])/(sqrt(nb[i])));
     }

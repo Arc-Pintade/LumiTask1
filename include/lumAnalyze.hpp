@@ -49,7 +49,7 @@ public :
     double* nClusterValue;
     int* BXidValue;
 
-   lumAnalyze(TTree *tree=0);
+   lumAnalyze(TString rootFile, TTree *tree=0);
    virtual ~lumAnalyze();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -77,14 +77,14 @@ public :
 #endif
 
 #ifdef lumAnalyze_cxx
-lumAnalyze::lumAnalyze(TTree *tree) : fChain(0) 
+lumAnalyze::lumAnalyze(TString rootFile, TTree *tree) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("data/merged_ZBAll_superscans.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("data/"+rootFile);
       if (!f || !f->IsOpen()) {
-         f = new TFile("data/merged_ZBAll_superscans.root");
+         f = new TFile("data/"+rootFile);
       }
       f->GetObject("pccminitree",tree);
 
